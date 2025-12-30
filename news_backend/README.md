@@ -39,6 +39,15 @@
       {"success":true,"message":"News article created successfully","data":{"id":3,"title":"Breaking News: AI Revolution","created_at":"2025-12-30T09:07:44"},"timestamp":"2025-12-30T12:37:11.939209"}%                                                                                                                                                                                            
       ```
   
+  4. Get All Categories 
+  ``` bash 
+   ▶ curl -X GET "http://localhost:8000/api/categories/"
+```
+  - Result
+  ``` json 
+    {"success":true,"message":"Found 8 categories","data":[{"category_id":1,"category_name":"politics"},{"category_id":2,"category_name":"technology"},{"category_id":3,"category_name":"sports"},{"category_id":4,"category_name":"entertainment"},{"category_id":5,"category_name":"business"},{"category_id":6,"category_name":"health"},{"category_id":7,"category_name":"science"},{"category
+
+```
   4. Get News Titles by Category
   ``` bash 
   curl -X GET "http://localhost:8000/api/news/by-category/technology/titles?limit=5"
