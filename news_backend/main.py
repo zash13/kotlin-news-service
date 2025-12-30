@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from database.database import get_db, create_tables
 from contextlib import asynccontextmanager
 import logging
+from sqlalchemy import text
+
 
 # Import API router
 from api.news_api import router as news_router
@@ -61,8 +63,8 @@ async def root():
 @app.get("/health")
 async def health_check(db: Session = Depends(get_db)):
     try:
-        # Simple database connection check
-        db.execute("SELECT 1")
+        # FIXED: Use text() wrapper for raw SQL in SQLAlchemy 2.0+
+        db.execute(text("SELECT 1"))
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
