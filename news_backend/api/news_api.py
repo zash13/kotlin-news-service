@@ -6,20 +6,18 @@ import logging
 from datetime import datetime
 
 from database.database import get_db
-from database.models import News, Image, CategoryEnum
-from models.news import Category, NewsCreate
+from database.models import News, Image, Category
 from dto.news_dto import (
     CreateNewsDTO,
     NewsTitleDTO,
     NewsListItemDTO,
     NewsDetailDTO,
-    CategoryRequestDTO,
     MultipleCategoriesRequestDTO,
     PaginationDTO,
+    CategoryInfoDTO,
 )
 from dto.response_dto import SuccessResponseDTO, ErrorResponseDTO
 
-# Setup logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
@@ -35,19 +33,9 @@ router = APIRouter(prefix="/api/news", tags=["news"])
     summary="Create a new news article",
 )
 async def create_news(news_data: CreateNewsDTO, db: Session = Depends(get_db)):
-    """
-    Create a new news article.
-
-    - **title**: News title (max 255 chars)
-    - **description**: Full news description
-    - **category**: News category (politics, technology, sports, etc.)
-    - **source**: News source (max 255 chars)
-    - **image_id**: Optional ID of associated image
-    """
     try:
         logger.info(f"Creating new news article: {news_data.title}")
 
-        # Validate image_id if provided
         if news_data.image_id is not None:
             image = db.query(Image).filter(Image.id == news_data.image_id).first()
             if not image:
@@ -57,16 +45,25 @@ async def create_news(news_data: CreateNewsDTO, db: Session = Depends(get_db)):
                     detail=f"Image with ID {news_data.image_id} not found",
                 )
 
-        # Convert Pydantic model to SQLAlchemy model
+        categories = (
+            db.query(Category).filter(Category.id.in_(news_data.category_ids)).all()
+        )
+        if len(categories) != len(news_data.category_ids):
+            found_ids = {c.id for c in categories}
+            missing_ids = set(news_data.category_ids) - found_ids
+            logger.warning(f"Category IDs not found: {missing_ids}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Categories with IDs {missing_ids} not found",
+            )
+
         db_news = News(
             title=news_data.title,
             description=news_data.description,
-            category=CategoryEnum[
-                news_data.category.name
-            ],  # Convert to SQLAlchemy Enum
             source=news_data.source,
             image_id=news_data.image_id,
             timestamp=datetime.utcnow(),
+            categories=categories,
         )
 
         db.add(db_news)
@@ -96,30 +93,30 @@ async def create_news(news_data: CreateNewsDTO, db: Session = Depends(get_db)):
 
 
 @router.get(
-    "/by-category/{category}/titles",
+    "/by-category/{category_id}/titles",
     response_model=SuccessResponseDTO,
     summary="Get news titles by category",
 )
 async def get_news_titles_by_category(
-    category: Category,
+    category_id: int,
     limit: int = Query(10, ge=1, le=50, description="Number of results to return"),
     db: Session = Depends(get_db),
 ):
-    """
-    Get news titles by category (first 10 newest by default).
-
-    - **category**: News category to filter by
-    - **limit**: Number of results (1-50, default 10)
-    """
     try:
-        logger.info(f"Fetching news titles for category: {category}")
+        logger.info(f"Fetching news titles for category ID: {category_id}")
 
-        # Convert to SQLAlchemy enum
-        category_enum = CategoryEnum[category.name]
+        category = db.query(Category).filter(Category.id == category_id).first()
+        if not category:
+            logger.warning(f"Category ID {category_id} not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Category with ID {category_id} not found",
+            )
 
         news_items = (
             db.query(News)
-            .filter(News.category == category_enum)
+            .join(News.categories)
+            .filter(Category.id == category_id)
             .order_by(desc(News.timestamp))
             .limit(limit)
             .all()
@@ -127,12 +124,14 @@ async def get_news_titles_by_category(
 
         titles = [NewsTitleDTO(id=item.id, title=item.title) for item in news_items]
 
-        logger.info(f"Found {len(titles)} news titles for category: {category}")
+        logger.info(f"Found {len(titles)} news titles for category ID: {category_id}")
 
         return SuccessResponseDTO(
             message=f"Found {len(titles)} news titles", data=titles
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching news titles by category: {str(e)}")
         raise HTTPException(
@@ -149,53 +148,59 @@ async def get_news_titles_by_category(
 async def get_news_titles_by_multiple_categories(
     request: MultipleCategoriesRequestDTO, db: Session = Depends(get_db)
 ):
-    """
-    Get news titles from multiple categories.
-
-    - **categories**: List of categories to include
-    - **limit_per_category**: Number of items per category (1-50, default 10)
-
-    Returns newest items across all specified categories, sorted by timestamp.
-    """
     try:
-        logger.info(f"Fetching news for categories: {request.categories}")
+        logger.info(f"Fetching news for category IDs: {request.category_ids}")
+
+        categories = (
+            db.query(Category).filter(Category.id.in_(request.category_ids)).all()
+        )
+        if len(categories) != len(request.category_ids):
+            found_ids = {c.id for c in categories}
+            missing_ids = set(request.category_ids) - found_ids
+            logger.warning(f"Category IDs not found: {missing_ids}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Categories with IDs {missing_ids} not found",
+            )
 
         all_news = []
 
-        for category in request.categories:
-            category_enum = CategoryEnum[category.name]
-
+        for category in categories:
             news_items = (
                 db.query(News)
-                .filter(News.category == category_enum)
+                .join(News.categories)
+                .filter(Category.id == category.id)
                 .order_by(desc(News.timestamp))
                 .limit(request.limit_per_category)
                 .all()
             )
 
-            # Convert to DTOs
             for item in news_items:
+                categories_info = [
+                    CategoryInfoDTO.model_validate(c) for c in item.categories
+                ]
                 all_news.append(
                     NewsListItemDTO(
                         id=item.id,
                         title=item.title,
-                        category=category,
+                        categories=categories_info,
                         timestamp=item.timestamp,
                         source=item.source,
                     )
                 )
 
-        # Sort all news by timestamp (newest first)
         all_news.sort(key=lambda x: x.timestamp, reverse=True)
 
         logger.info(
-            f"Found {len(all_news)} news items across {len(request.categories)} categories"
+            f"Found {len(all_news)} news items across {len(categories)} categories"
         )
 
         return SuccessResponseDTO(
             message=f"Found {len(all_news)} news items", data=all_news
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching news by multiple categories: {str(e)}")
         raise HTTPException(
@@ -213,11 +218,6 @@ async def get_newest_news_titles(
     limit: int = Query(10, ge=1, le=50, description="Number of results to return"),
     db: Session = Depends(get_db),
 ):
-    """
-    Get newest news titles across all categories.
-
-    - **limit**: Number of results (1-50, default 10)
-    """
     try:
         logger.info(f"Fetching {limit} newest news titles")
 
@@ -245,11 +245,6 @@ async def get_newest_news_titles(
     summary="Get full news article by ID",
 )
 async def get_news_by_id(news_id: int, db: Session = Depends(get_db)):
-    """
-    Get full news article details by ID.
-
-    - **news_id**: ID of the news article
-    """
     try:
         logger.info(f"Fetching news article with ID: {news_id}")
 
@@ -262,12 +257,15 @@ async def get_news_by_id(news_id: int, db: Session = Depends(get_db)):
                 detail=f"News article with ID {news_id} not found",
             )
 
-        # Convert to DTO
+        categories_info = [
+            CategoryInfoDTO.model_validate(c) for c in news_item.categories
+        ]
+
         news_detail = NewsDetailDTO(
             id=news_item.id,
             title=news_item.title,
             description=news_item.description,
-            category=Category(news_item.category.value),
+            categories=categories_info,
             timestamp=news_item.timestamp,
             source=news_item.source,
             created_at=news_item.created_at,
@@ -300,11 +298,6 @@ async def get_newest_full_news(
     limit: int = Query(10, ge=1, le=50, description="Number of results to return"),
     db: Session = Depends(get_db),
 ):
-    """
-    Get newest full news articles across all categories.
-
-    - **limit**: Number of results (1-50, default 10)
-    """
     try:
         logger.info(f"Fetching {limit} newest full news articles")
 
@@ -312,12 +305,15 @@ async def get_newest_full_news(
 
         news_list = []
         for item in news_items:
+            categories_info = [
+                CategoryInfoDTO.model_validate(c) for c in item.categories
+            ]
             news_list.append(
                 NewsDetailDTO(
                     id=item.id,
                     title=item.title,
                     description=item.description,
-                    category=Category(item.category.value),
+                    categories=categories_info,
                     timestamp=item.timestamp,
                     source=item.source,
                     created_at=item.created_at,
@@ -341,29 +337,30 @@ async def get_newest_full_news(
 
 
 @router.get(
-    "/by-category/{category}/full",
+    "/by-category/{category_id}/full",
     response_model=SuccessResponseDTO,
     summary="Get full news articles by category",
 )
 async def get_full_news_by_category(
-    category: Category,
+    category_id: int,
     limit: int = Query(10, ge=1, le=50, description="Number of results to return"),
     db: Session = Depends(get_db),
 ):
-    """
-    Get full news articles by category (newest first).
-
-    - **category**: News category to filter by
-    - **limit**: Number of results (1-50, default 10)
-    """
     try:
-        logger.info(f"Fetching full news articles for category: {category}")
+        logger.info(f"Fetching full news articles for category ID: {category_id}")
 
-        category_enum = CategoryEnum[category.name]
+        category = db.query(Category).filter(Category.id == category_id).first()
+        if not category:
+            logger.warning(f"Category ID {category_id} not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Category with ID {category_id} not found",
+            )
 
         news_items = (
             db.query(News)
-            .filter(News.category == category_enum)
+            .join(News.categories)
+            .filter(Category.id == category_id)
             .order_by(desc(News.timestamp))
             .limit(limit)
             .all()
@@ -371,12 +368,15 @@ async def get_full_news_by_category(
 
         news_list = []
         for item in news_items:
+            categories_info = [
+                CategoryInfoDTO.model_validate(c) for c in item.categories
+            ]
             news_list.append(
                 NewsDetailDTO(
                     id=item.id,
                     title=item.title,
                     description=item.description,
-                    category=Category(item.category.value),
+                    categories=categories_info,
                     timestamp=item.timestamp,
                     source=item.source,
                     created_at=item.created_at,
@@ -386,13 +386,15 @@ async def get_full_news_by_category(
             )
 
         logger.info(
-            f"Found {len(news_list)} full news articles for category: {category}"
+            f"Found {len(news_list)} full news articles for category ID: {category_id}"
         )
 
         return SuccessResponseDTO(
             message=f"Found {len(news_list)} news articles", data=news_list
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching full news by category: {str(e)}")
         raise HTTPException(

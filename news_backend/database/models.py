@@ -1,20 +1,16 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Table
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-import enum
 
 Base = declarative_base()
 
-
-class CategoryEnum(enum.Enum):
-    POLITICS = "politics"
-    TECHNOLOGY = "technology"
-    SPORTS = "sports"
-    ENTERTAINMENT = "entertainment"
-    BUSINESS = "business"
-    HEALTH = "health"
-    SCIENCE = "science"
-    WORLD = "world"
+news_categories = Table(
+    'news_categories',
+    Base.metadata,
+    Column('news_id', Integer, ForeignKey('news.id', ondelete='CASCADE'), primary_key=True),
+    Column('category_id', Integer, ForeignKey('categories.id', ondelete='CASCADE'), primary_key=True)
+)
 
 
 class Image(Base):
@@ -27,6 +23,16 @@ class Image(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class Category(Base):
+    __tablename__ = "categories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False, unique=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    news_items = relationship("News", secondary=news_categories, back_populates="categories")
+
+
 class News(Base):
     __tablename__ = "news"
 
@@ -34,8 +40,10 @@ class News(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
     image_id = Column(Integer, ForeignKey("images.id"), nullable=True)
-    category = Column(Enum(CategoryEnum), nullable=False)
     source = Column(String(255), nullable=False)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    image = relationship("Image", foreign_keys=[image_id])
+    categories = relationship("Category", secondary=news_categories, back_populates="news_items")

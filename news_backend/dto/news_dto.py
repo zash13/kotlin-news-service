@@ -1,39 +1,43 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional, List
-from models.news import Category
 
 
-# DTO for creating news
 class CreateNewsDTO(BaseModel):
     title: str = Field(..., max_length=255)
     description: str
-    category: Category
+    category_ids: List[int] = Field(..., min_length=1)
     source: str = Field(..., max_length=255)
     image_id: Optional[int] = None
 
 
-# DTO for news title response
 class NewsTitleDTO(BaseModel):
     id: int
     title: str
 
 
-# DTO for news listing (with timestamps)
+class CategoryInfoDTO(BaseModel):
+    id: int = Field(..., serialization_alias="category_id")
+    name: str = Field(..., serialization_alias="category_name")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
 class NewsListItemDTO(BaseModel):
     id: int
     title: str
-    category: Category
+    categories: List[CategoryInfoDTO]
     timestamp: datetime
     source: str
 
 
-# DTO for single news details
 class NewsDetailDTO(BaseModel):
     id: int
     title: str
     description: str
-    category: Category
+    categories: List[CategoryInfoDTO]
     timestamp: datetime
     source: str
     created_at: datetime
@@ -41,18 +45,15 @@ class NewsDetailDTO(BaseModel):
     image_id: Optional[int] = None
 
 
-# DTO for category-based requests
 class CategoryRequestDTO(BaseModel):
-    category: Category
+    category_id: int
 
 
-# DTO for multiple categories request
 class MultipleCategoriesRequestDTO(BaseModel):
-    categories: List[Category]
+    category_ids: List[int] = Field(..., min_length=1)
     limit_per_category: Optional[int] = Field(10, ge=1, le=50)
 
 
-# DTO for pagination
 class PaginationDTO(BaseModel):
     limit: Optional[int] = Field(10, ge=1, le=100)
     offset: Optional[int] = Field(0, ge=0)

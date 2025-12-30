@@ -6,8 +6,8 @@ import logging
 from sqlalchemy import text
 
 
-# Import API router
 from api.news_api import router as news_router
+from api.category_api import router as category_router
 
 # Setup logging
 logging.basicConfig(
@@ -36,6 +36,7 @@ app = FastAPI(
 
 # Include API router
 app.include_router(news_router)
+app.include_router(category_router)
 
 
 @app.get("/")
