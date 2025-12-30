@@ -1,0 +1,79 @@
+
+# -------------------------
+# Python cache / build files
+# -------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.pkl
+
+# C extensions
+*.so
+
+# -------------------------
+# Virtual environment
+# -------------------------
+virt/
+venv/
+.env/
+.venv/
+
+# -------------------------
+# Environment variables
+# -------------------------
+*.env
+.env.*
+
+# -------------------------
+# SQLite / local DB files
+# -------------------------
+*.db
+*.sqlite3
+
+# -------------------------
+# IDE / Editor files
+# -------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# -------------------------
+# OS files
+# -------------------------
+.DS_Store
+Thumbs.db
+
+# -------------------------
+# Logs
+# -------------------------
+*.log
+
+# -------------------------
+# PyInstaller / packaging
+# -------------------------
+build/
+dist/
+*.spec
+
+# -------------------------
+# Coverage / testing
+# -------------------------
+.coverage
+htmlcov/
+.cache/
+pytest_cache/
+
+# -------------------------
+# MyPy / type checking
+# -------------------------
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# -------------------------
+# FastAPI / Uvicorn
+# -------------------------
+*.pid
