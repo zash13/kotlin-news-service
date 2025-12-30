@@ -69,7 +69,6 @@ fun feedContent(
     Column(
         modifier = modifier.fillMaxSize(),
     ) {
-        // Header
         Text(
             text = "Select Your Interests",
             style = MaterialTheme.typography.headlineMedium,
