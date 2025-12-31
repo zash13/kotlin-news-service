@@ -41,7 +41,6 @@ class NewsDetailDTO(BaseModel):
     timestamp: datetime
     source: str
     created_at: datetime
-    updated_at: datetime
     image_id: Optional[int] = None
 
 

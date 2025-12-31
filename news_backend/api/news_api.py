@@ -269,7 +269,6 @@ async def get_news_by_id(news_id: int, db: Session = Depends(get_db)):
             timestamp=news_item.timestamp,
             source=news_item.source,
             created_at=news_item.created_at,
-            updated_at=news_item.updated_at,
             image_id=news_item.image_id,
         )
 
@@ -317,7 +316,6 @@ async def get_newest_full_news(
                     timestamp=item.timestamp,
                     source=item.source,
                     created_at=item.created_at,
-                    updated_at=item.updated_at,
                     image_id=item.image_id,
                 )
             )
@@ -380,7 +378,6 @@ async def get_full_news_by_category(
                     timestamp=item.timestamp,
                     source=item.source,
                     created_at=item.created_at,
-                    updated_at=item.updated_at,
                     image_id=item.image_id,
                 )
             )
