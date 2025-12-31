@@ -20,32 +20,33 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-// Base URL is configured in app/src/main/res/values/strings.xml
-// Retrofit instance is provided by Hilt DI in NetworkModule
+// base url is configured in app/src/main/res/values/strings.xml
+// retrofit instance is provided by hilt di in networkmodule
 
-// Interface
+// interface
 
 interface NewsApiService {
     @GET("/health")
     suspend fun checkHealth(): String
 
-    @GET("/api/categories/")
-    suspend fun getCategories(): CategoriesResponse
-
     @GET("/")
     suspend fun getRoot(): RootResponse
+
+    @GET("/api/categories/")
+    suspend fun getCategories(): CategoriesResponse
 
     @POST("/api/news/")
     suspend fun createNews(
         @Body request: CreateNewsRequest,
     ): CreateNewsResponse
 
-    @GET("/api/news/by-category/{category}/titles")
+    @GET("/api/news/by-category/{categoryId}/titles")
     suspend fun getTitlesByCategory(
-        @Path("category") category: String,
+        @Path("categoryId") categoryId: Int,
         @Query("limit") limit: Int? = null,
     ): NewsTitlesResponse
 
+    // Get titles from multiple categories
     @POST("/api/news/by-multiple-categories/titles")
     suspend fun getTitlesByMultipleCategories(
         @Body request: MultiCategoriesRequest,
@@ -56,9 +57,9 @@ interface NewsApiService {
         @Query("limit") limit: Int? = null,
     ): NewsTitlesResponse
 
-    @GET("/api/news/{news_id}")
+    @GET("/api/news/{newsId}")
     suspend fun getNewsById(
-        @Path("news_id") newsId: Int,
+        @Path("newsId") newsId: Int,
     ): NewsByIdResponse
 
     @GET("/api/news/newest/full")
@@ -66,9 +67,9 @@ interface NewsApiService {
         @Query("limit") limit: Int? = null,
     ): FullNewsResponse
 
-    @GET("/api/news/by-category/{category}/full")
+    @GET("/api/news/by-category/{categoryId}/full")
     suspend fun getFullByCategory(
-        @Path("category") category: String,
+        @Path("categoryId") categoryId: Int,
         @Query("limit") limit: Int? = null,
     ): FullNewsResponse
 }

@@ -16,16 +16,16 @@ data class CategoriesResponse(
     val success: Boolean,
     val message: String,
     val data: List<CategoryApiModel>,
-    val timestamp: String,
+    val timestamp: String? = null,
 )
 
 @Serializable
 data class CreateNewsRequest(
     val title: String,
     val description: String,
-    val category: String,
+    @SerialName("category_ids")
+    val categoryIds: List<Int>,
     val source: String,
-    val image_id: Int,
 )
 
 @Serializable
@@ -40,7 +40,7 @@ data class CreateNewsResponse(
     val success: Boolean,
     val message: String,
     val data: CreatedNewsData,
-    val timestamp: String,
+    val timestamp: String? = null,
 )
 
 @Serializable
@@ -54,14 +54,49 @@ data class NewsTitlesResponse(
     val success: Boolean,
     val message: String,
     val data: List<NewsTitle>,
-    val timestamp: String,
+    val timestamp: String? = null,
+)
+
+@Serializable
+data class CategoryInfo(
+    @SerialName("category_id")
+    val id: Int,
+    @SerialName("category_name")
+    val name: String,
+)
+
+@Serializable
+data class FullNews(
+    val id: Int,
+    val title: String,
+    val description: String,
+    val categories: List<CategoryInfo>,
+    val source: String,
+    val created_at: String,
+    val image_id: Int? = null,
+)
+
+@Serializable
+data class NewsByIdResponse(
+    val success: Boolean,
+    val message: String,
+    val data: FullNews,
+    val timestamp: String? = null,
+)
+
+@Serializable
+data class FullNewsResponse(
+    val success: Boolean,
+    val message: String,
+    val data: List<FullNews>,
+    val timestamp: String? = null,
 )
 
 @Serializable
 data class MultiCategoryNewsItem(
     val id: Int,
     val title: String,
-    val category: String,
+    val categories: List<CategoryInfo>,
     val timestamp: String,
     val source: String,
 )
@@ -71,13 +106,14 @@ data class MultiCategoriesTitlesResponse(
     val success: Boolean,
     val message: String,
     val data: List<MultiCategoryNewsItem>,
-    val timestamp: String,
+    val timestamp: String? = null,
 )
 
 @Serializable
 data class MultiCategoriesRequest(
-    val categories: List<String>,
-    val limit_per_category: Int,
+    @SerialName("category_ids")
+    val categoryIds: List<Int>,
+    val limit_per_category: Int? = null,
 )
 
 @Serializable
@@ -93,31 +129,4 @@ data class RootResponse(
     val message: String,
     val version: String,
     val endpoints: EndpointInfo,
-)
-
-@Serializable
-data class FullNews(
-    val id: Int,
-    val title: String,
-    val description: String,
-    val category: String,
-    val source: String,
-    val image_id: Int,
-    val created_at: String,
-)
-
-@Serializable
-data class NewsByIdResponse(
-    val success: Boolean,
-    val message: String,
-    val data: FullNews,
-    val timestamp: String,
-)
-
-@Serializable
-data class FullNewsResponse(
-    val success: Boolean,
-    val message: String,
-    val data: List<FullNews>,
-    val timestamp: String,
 )
