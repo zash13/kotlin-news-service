@@ -3,17 +3,36 @@ package com.example.newsapplication.data.repository
 import com.example.newsapplication.data.dto.CategoryDto
 import com.example.newsapplication.data.mapper.toDto
 import com.example.newsapplication.data.models.CategoriesResponse
+import com.example.newsapplication.data.models.UserCategory
 import com.example.newsapplication.network.NewsApiService
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-interface NewsRepository {
+interface INewsRepository {
     suspend fun checkHealth(): String
 
-    suspend fun getCategories(): List<CategoryDto> // Changed to return DTOs, not API models
+    suspend fun getCategories(): List<CategoryDto>
+
+    fun getUserCategories(): StateFlow<List<UserCategory>>
+
+    suspend fun setUserCategories(categoryIds: Set<Int>)
 }
 
-class NetworkNewsRepository(
+class NewsRepository(
     private val apiService: NewsApiService,
-) : NewsRepository {
+) : INewsRepository {
+    private val _userCategories = MutableStateFlow<List<UserCategory>>(emptyList())
+
+    override fun getUserCategories(): StateFlow<List<UserCategory>> = _userCategories.asStateFlow()
+
+    override suspend fun setUserCategoriesId(categoryIds: Set<Int>) {
+        _userCategories.value =
+            categoryIds.map { categoryId ->
+                UserCategory(categoryId = categoryId)
+            }
+    }
+
     override suspend fun checkHealth(): String = apiService.checkHealth()
 
     override suspend fun getCategories(): List<CategoryDto> = apiService.getCategories().data.map { it.toDto() }

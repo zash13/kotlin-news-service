@@ -1,7 +1,7 @@
 
 package com.example.newsapplication.di
 
-import com.example.newsapplication.data.repository.NetworkNewsRepository
+import com.example.newsapplication.data.repository.INewsRepository
 import com.example.newsapplication.data.repository.NewsRepository
 import com.example.newsapplication.network.NewsApiService
 import dagger.Module
@@ -15,5 +15,5 @@ import javax.inject.Singleton
 object RepositoryModule {
     @Provides
     @Singleton
-    fun provideNewsRepository(api: NewsApiService): NewsRepository = NetworkNewsRepository(api)
+    fun provideNewsRepository(api: NewsApiService): INewsRepository = NewsRepository(api)
 }

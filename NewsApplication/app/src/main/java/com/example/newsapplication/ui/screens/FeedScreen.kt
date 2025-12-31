@@ -56,6 +56,7 @@ fun feedScreen(
         onCategorySelected = { categoryId ->
             viewModel.toggleCategorySelection(categoryId)
         },
+        onSaveCategories = { viewModel.saveUserCategories() },
         modifier = modifier,
     )
 }
@@ -64,6 +65,7 @@ fun feedScreen(
 fun feedContent(
     uiState: FeedUiState,
     onCategorySelected: (Int) -> Unit,
+    onSaveCategories: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -124,7 +126,7 @@ fun feedContent(
 
             Button(
                 onClick = {
-                    println("Continue with selected categories: ${uiState.selectedCategoryIds}")
+                    onSaveCategories()
                 },
                 modifier =
                     Modifier
@@ -166,7 +168,6 @@ fun categoryGrid(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun categoryItem(
     category: CategoryDto,

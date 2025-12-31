@@ -1,25 +1,20 @@
 package com.example.newsapplication.ui.screens
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.newsapplication.data.repository.NewsRepository
+import com.example.newsapplication.data.repository.INewsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
 class NewsViewModel
     @Inject
     constructor(
-        private val repository: NewsRepository,
+        private val repository: INewsRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(FeedUiState(isLoading = true))
         val uiState: StateFlow<FeedUiState> = _uiState.asStateFlow()
@@ -66,5 +61,11 @@ class NewsViewModel
 
         fun clearSelections() {
             _uiState.value = _uiState.value.copy(selectedCategoryIds = emptySet())
+        }
+
+        fun saveUserCategories() {
+            viewModelScope.launch {
+                repository.setUserCategories(_uiState.value.selectedCategoryIds)
+            }
         }
     }

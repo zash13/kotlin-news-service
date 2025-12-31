@@ -8,6 +8,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 import retrofit2.http.GET
 
+// put your own ip in here
 private const val BASE_URL =
     "http://10.242.219.157:8000"
 
