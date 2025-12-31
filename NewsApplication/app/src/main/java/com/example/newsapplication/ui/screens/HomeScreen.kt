@@ -56,12 +56,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 fun homeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     modifier: Modifier = Modifier,
+    onNavigateToDetail: (Int) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     newsFeed(
         uiState = uiState,
-        onNewsSelected = {},
+        onNewsSelected = onNavigateToDetail,
         modifier = modifier,
         onRetryToGet = { viewModel.retry() },
     )

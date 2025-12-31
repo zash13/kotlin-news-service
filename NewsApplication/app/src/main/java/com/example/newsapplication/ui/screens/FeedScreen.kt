@@ -48,6 +48,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 fun feedScreen(
     viewModel: FeedViewModel = hiltViewModel(),
     modifier: Modifier = Modifier,
+    onNavigateToHome: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -56,7 +57,10 @@ fun feedScreen(
         onCategorySelected = { categoryId ->
             viewModel.toggleCategorySelection(categoryId)
         },
-        onSaveCategories = { viewModel.saveUserCategories() },
+        onSaveCategories = {
+            viewModel.saveUserCategories()
+            onNavigateToHome()
+        },
         modifier = modifier,
     )
 }
@@ -133,7 +137,6 @@ fun feedContent(
                         .fillMaxWidth()
                         .padding(16.dp)
                         .height(56.dp),
-                enabled = uiState.selectedCategoryIds.isNotEmpty(),
             ) {
                 Text(
                     text = "Continue",
