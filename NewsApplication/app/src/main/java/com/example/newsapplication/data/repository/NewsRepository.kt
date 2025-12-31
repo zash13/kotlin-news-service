@@ -26,7 +26,7 @@ class NewsRepository(
 
     override fun getUserCategories(): StateFlow<List<UserCategory>> = _userCategories.asStateFlow()
 
-    override suspend fun setUserCategoriesId(categoryIds: Set<Int>) {
+    override suspend fun setUserCategories(categoryIds: Set<Int>) {
         _userCategories.value =
             categoryIds.map { categoryId ->
                 UserCategory(categoryId = categoryId)
