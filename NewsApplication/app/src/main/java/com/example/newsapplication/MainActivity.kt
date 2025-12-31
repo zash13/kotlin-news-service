@@ -11,7 +11,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.newsapplication.ui.screens.feedScreen
+import com.example.newsapplication.ui.screens.homeScreen
+import com.example.newsapplication.ui.screens.newsDetailScreen
 import com.example.newsapplication.ui.theme.NewsApplicationTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -22,10 +27,49 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             NewsApplicationTheme {
+                val navController = rememberNavController()
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    feedScreen()
+                    NavHost(
+                        navController = navController,
+                        startDestination = Screen.Feed.route,
+                        modifier = Modifier.padding(innerPadding),
+                    ) {
+                        composable(route = Screen.Feed.route) {
+                            feedScreen(
+                                onNavigateToHome = {
+                                    navController.navigate(Screen.Home.route) {
+                                        popUpTo(Screen.Feed.route) { inclusive = true }
+                                    }
+                                },
+                            )
+                        }
+                        composable(route = Screen.Home.route) {
+                            homeScreen(
+                                onNavigateToDetail = { newsId ->
+                                    navController.navigate(Screen.NewsDetail.createRoute(newsId))
+                                },
+                            )
+                        }
+                        composable(route = Screen.NewsDetail.route) { backStackEntry ->
+                            val newsId = backStackEntry.arguments?.getString("newsId")?.toIntOrNull() ?: 0
+                            newsDetailScreen(
+                                newsId = newsId,
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                },
+                            )
+                        }
+                    }
                 }
             }
         }
+    }
+}
+
+sealed class Screen(val route: String) {
+    data object Feed : Screen("feed")
+    data object Home : Screen("home")
+    data object NewsDetail : Screen("newsDetail/{newsId}") {
+        fun createRoute(newsId: Int): String = "newsDetail/$newsId"
     }
 }
