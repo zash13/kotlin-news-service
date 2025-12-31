@@ -1,12 +1,14 @@
-
 package com.example.newsapplication.di
 
+import android.content.Context
 import android.util.Log
+import com.example.newsapplication.R
 import com.example.newsapplication.network.NewsApiService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -20,6 +22,12 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
     private const val TAG = "NetworkModule"
+
+    @Provides
+    @Singleton
+    fun provideBaseUrl(@ApplicationContext context: Context): String {
+        return context.getString(R.string.base_url)
+    }
 
     @Provides
     @Singleton
@@ -40,8 +48,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
-        val baseUrl = "http://10.242.219.157:8000"
+    fun provideRetrofit(okHttpClient: OkHttpClient, baseUrl: String): Retrofit {
         Log.d(TAG, "Creating Retrofit with baseUrl: $baseUrl")
 
         return Retrofit.Builder()

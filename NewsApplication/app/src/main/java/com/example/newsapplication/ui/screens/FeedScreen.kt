@@ -46,7 +46,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 
 @Composable
 fun feedScreen(
-    viewModel: NewsViewModel = hiltViewModel(),
+    viewModel: FeedViewModel = hiltViewModel(),
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()

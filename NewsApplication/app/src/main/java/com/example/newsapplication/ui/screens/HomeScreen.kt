@@ -63,7 +63,7 @@ fun homeScreen(
         uiState = uiState,
         onNewsSelected = {},
         modifier = modifier,
-        onRetryToGet = {},
+        onRetryToGet = { viewModel.retry() },
     )
 }
 

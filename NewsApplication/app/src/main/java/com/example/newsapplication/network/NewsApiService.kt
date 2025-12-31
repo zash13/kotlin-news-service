@@ -1,4 +1,3 @@
-
 package com.example.newsapplication.network
 import com.example.newsapplication.data.models.CategoriesResponse
 import com.example.newsapplication.data.models.CategoryApiModel
@@ -15,34 +14,14 @@ import com.example.newsapplication.data.models.NewsByIdResponse
 import com.example.newsapplication.data.models.NewsTitle
 import com.example.newsapplication.data.models.NewsTitlesResponse
 import com.example.newsapplication.data.models.RootResponse
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
-import retrofit2.Retrofit
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-// put your own ip in here
-private const val BASE_URL =
-    "http://10.242.219.157:8000"
-
-private val retrofit =
-    Retrofit
-        .Builder()
-        .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
-        .baseUrl(BASE_URL)
-        .build()
-
-object NewsApi {
-    val retrofitService: NewsApiService by lazy {
-        retrofit.create(NewsApiService::class.java)
-    }
-}
+// Base URL is configured in app/src/main/res/values/strings.xml
+// Retrofit instance is provided by Hilt DI in NetworkModule
 
 // Interface
 
