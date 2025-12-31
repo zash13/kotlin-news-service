@@ -1,13 +1,15 @@
 
 package com.example.newsapplication.ui.screens
 
+package com.example.newsapplication.ui.screens
+
+import com.example.newsapplication.data.dto.NewsTitleDto
+
 data class NewsUiState(
-    val id: Int = 1,
-  /*
-    val currentScrambledWord: String = "",
-    val currentWordCount: Int = 1,
-    val score: Int = 0,
-    val isGuessedWordWrong: Boolean = false,
-    val isGameOver: Boolean = false,
-   */
+    val newsTitels: List<NewsTitleDto> = emptyList(),
+    val isLoading: Boolean = false,
+    // in case the loading did not succeed
+    val errorMessage: String? = null,
+    val errorLoading: Boolean = false,
+)
 )
