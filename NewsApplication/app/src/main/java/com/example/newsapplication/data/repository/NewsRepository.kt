@@ -1,6 +1,7 @@
 package com.example.newsapplication.data.repository
 
 import com.example.newsapplication.data.dto.CategoryDto
+import com.example.newsapplication.data.dto.FullNewsDto
 import com.example.newsapplication.data.dto.NewsTitleDto
 import com.example.newsapplication.data.mapper.toDto
 import com.example.newsapplication.data.mapper.toNewsTitleDto
@@ -22,6 +23,8 @@ interface INewsRepository {
     suspend fun setUserCategories(categoryIds: Set<Int>)
 
     suspend fun getNewsTitles(categoryIds: Set<Int>): List<NewsTitleDto>
+
+    suspend fun getNewsById(newsId: Int): FullNewsDto?
 }
 
 class NewsRepository(
@@ -46,18 +49,17 @@ class NewsRepository(
         return if (categoryIds.isEmpty()) {
             apiService.getNewestTitles(null).data.map { it.toNewsTitleDto() }
         } else {
-            val categories = getCategories()
-            val categoryNames = categoryIds
-                .mapNotNull { categoryId ->
-                    categories.find { it.id == categoryId }?.name
-                }
+            val request = MultiCategoriesRequest(categoryIds = categoryIds.toList(), limit_per_category = 5)
+            apiService.getTitlesByMultipleCategories(request).data.map { it.toNewsTitleDto() }
+        }
+    }
 
-            if (categoryNames.isEmpty()) {
-                apiService.getNewestTitles(null).data.map { it.toNewsTitleDto() }
-            } else {
-                val request = MultiCategoriesRequest(categories = categoryNames, limit_per_category = 5)
-                apiService.getTitlesByMultipleCategories(request).data.map { it.toNewsTitleDto() }
-            }
+    override suspend fun getNewsById(newsId: Int): FullNewsDto? {
+        return try {
+            apiService.getNewsById(newsId).data.toDto()
+        } catch (e: Exception) {
+            android.util.Log.e("NewsRepository", "Error fetching news by id: $newsId", e)
+            null
         }
     }
 }
