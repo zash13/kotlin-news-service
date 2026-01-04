@@ -14,7 +14,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.newsapplication.ui.screens.feedScreen
 import com.example.newsapplication.ui.screens.homeScreen
 import com.example.newsapplication.ui.screens.newsDetailScreen
 import com.example.newsapplication.ui.theme.NewsApplicationTheme
@@ -31,18 +30,9 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.Feed.route,
+                        startDestination = Screen.Home.route,
                         modifier = Modifier.padding(innerPadding),
                     ) {
-                        composable(route = Screen.Feed.route) {
-                            feedScreen(
-                                onNavigateToHome = {
-                                    navController.navigate(Screen.Home.route) {
-                                        popUpTo(Screen.Feed.route) { inclusive = true }
-                                    }
-                                },
-                            )
-                        }
                         composable(route = Screen.Home.route) {
                             homeScreen(
                                 onNavigateToDetail = { newsId ->
@@ -66,9 +56,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-sealed class Screen(val route: String) {
-    data object Feed : Screen("feed")
+sealed class Screen(
+    val route: String,
+) {
     data object Home : Screen("home")
+
     data object NewsDetail : Screen("newsDetail/{newsId}") {
         fun createRoute(newsId: Int): String = "newsDetail/$newsId"
     }
