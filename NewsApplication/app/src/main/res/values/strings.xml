@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">NewsApplication</string>
-    <string name="base_url">http://10.204.130.157:8000</string>
+    <string name="base_url">http://10.207.23.157:8000</string>
 </resources>

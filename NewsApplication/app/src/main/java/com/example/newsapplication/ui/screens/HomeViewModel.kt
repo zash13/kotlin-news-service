@@ -1,5 +1,6 @@
 package com.example.newsapplication.ui.screens
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.newsapplication.data.repository.INewsRepository
@@ -19,35 +20,59 @@ class HomeViewModel
         private val _uiState = MutableStateFlow(NewsUiState(isLoading = true))
         val uiState: StateFlow<NewsUiState> = _uiState.asStateFlow()
 
+        private val _searchQuery = MutableStateFlow("")
+        val searchQuery = _searchQuery.asStateFlow()
+
         init {
+            loadCategories()
             loadNews()
         }
 
-        fun loadNews() {
+        private fun loadCategories() {
+            viewModelScope.launch {
+                try {
+                    val categories = repository.getCategories()
+                    val userCategories = repository.getUserCategories().value
+                    val selectedIds = userCategories.map { it.categoryId }.toSet()
+
+                    _uiState.value = _uiState.value.copy(
+                        newsCategories = categories,
+                        selectedCategoryIds = selectedIds
+                    )
+                } catch (e: Exception) {
+                    android.util.Log.e("HomeViewModel", "Error loading categories", e)
+                }
+            }
+        }
+
+        fun loadNews(searchString: String? = "") {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, errorLoading = false)
 
             viewModelScope.launch {
                 try {
-                    android.util.Log.d("HomeViewModel", "Loading news titles...")
-                    val userCategories = repository.getUserCategories().value
-                    val categoryIds = userCategories.map { it.categoryId }.toSet()
+                    val newsTitles = if (!searchString.isNullOrBlank()) {
+                        repository.searchNews(searchString)
+                    } else {
+                        val userCategories = repository.getUserCategories().value
+                        val categoryIds = userCategories.map { it.categoryId }.toSet()
 
-                    android.util.Log.d("HomeViewModel", "User selected categories: $categoryIds")
-
-                    val newsTitles = repository.getNewsTitles(categoryIds)
-                    android.util.Log.d("HomeViewModel", "Received ${newsTitles.size} news titles")
+                        if (categoryIds.isEmpty()) {
+                            repository.getNewsTitles()
+                        } else {
+                            repository.getNewsTitles(categoryIds)
+                        }
+                    }
 
                     _uiState.value =
-                        NewsUiState(
-                            newsTitels = newsTitles,
+                        _uiState.value.copy(
+                            newsTitles = newsTitles,
                             isLoading = false,
                             errorMessage = null,
                             errorLoading = false,
                         )
                 } catch (e: Exception) {
-                    android.util.Log.e("HomeViewModel", "Error loading news", e)
                     _uiState.value =
-                        NewsUiState(
+                        _uiState.value.copy(
                             isLoading = false,
                             errorMessage = e.message ?: "Failed to load news",
                             errorLoading = true,
@@ -56,7 +81,39 @@ class HomeViewModel
             }
         }
 
+        fun onSearchQueryChanged(newValue: String) {
+            val wasSearching = !_searchQuery.value.isNullOrBlank()
+            val isSearching = !newValue.isNullOrBlank()
+            
+            _searchQuery.value = newValue
+            
+            if (wasSearching && !isSearching) {
+                loadNews()
+            }
+        }
+
+        fun onSearch() {
+            loadNews(_searchQuery.value)
+        }
+
         fun retry() {
             loadNews()
+        }
+
+        fun toggleCategorySelection(categoryId: Int) {
+            val currentSelections = _uiState.value.selectedCategoryIds.toMutableSet()
+
+            if (currentSelections.contains(categoryId)) {
+                currentSelections.remove(categoryId)
+            } else {
+                currentSelections.add(categoryId)
+            }
+
+            _uiState.value = _uiState.value.copy(selectedCategoryIds = currentSelections)
+
+            viewModelScope.launch {
+                repository.setUserCategories(currentSelections)
+                loadNews()
+            }
         }
     }

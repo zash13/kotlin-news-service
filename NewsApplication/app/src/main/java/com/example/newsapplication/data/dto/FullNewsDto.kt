@@ -13,5 +13,6 @@ data class FullNewsDto(
     val categories: List<CategoryInfoDto>,
     val source: String,
     val imageId: Int? = null,
+    val imageLocation: String? = null,
     val createdAt: String,
 )

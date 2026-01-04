@@ -25,6 +25,8 @@ fun NewsTitle.toNewsTitleDto(): NewsTitleDto =
     NewsTitleDto(
         id = id,
         title = title,
+        shortDescription = shortDescription,
+        imageId = imageId,
         createAt = "",
     )
 
@@ -32,6 +34,8 @@ fun MultiCategoryNewsItem.toNewsTitleDto(): NewsTitleDto =
     NewsTitleDto(
         id = id,
         title = title,
+        shortDescription = shortDescription,
+        imageId = imageId,
         createAt = timestamp,
     )
 
@@ -42,6 +46,8 @@ fun FullNews.toDto(): FullNewsDto =
         description = description,
         categories = categories.map { it.toDto() },
         source = source,
-        imageId = image_id,
+        imageId = imageId,
+        imageLocation = imageLocation,
         createdAt = created_at,
     )
+
