@@ -4,6 +4,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
   gcc \
+  curl \
   && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -11,7 +12,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+ENV IMAGE_STORAGE_LOCATION=/app/data/images
+
+RUN mkdir -p /app/data/images && \
+    useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+
 USER appuser
 
 EXPOSE 8000

@@ -6,10 +6,17 @@ from sqlalchemy.sql import func
 Base = declarative_base()
 
 news_categories = Table(
-    'news_categories',
+    "news_categories",
     Base.metadata,
-    Column('news_id', Integer, ForeignKey('news.id', ondelete='CASCADE'), primary_key=True),
-    Column('category_id', Integer, ForeignKey('categories.id', ondelete='CASCADE'), primary_key=True)
+    Column(
+        "news_id", Integer, ForeignKey("news.id", ondelete="CASCADE"), primary_key=True
+    ),
+    Column(
+        "category_id",
+        Integer,
+        ForeignKey("categories.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
 )
 
 
@@ -30,7 +37,9 @@ class Category(Base):
     name = Column(String(100), nullable=False, unique=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    news_items = relationship("News", secondary=news_categories, back_populates="categories")
+    news_items = relationship(
+        "News", secondary=news_categories, back_populates="categories"
+    )
 
 
 class News(Base):
@@ -39,6 +48,7 @@ class News(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
+    short_description = Column(String(500), nullable=True)
     image_id = Column(Integer, ForeignKey("images.id"), nullable=True)
     source = Column(String(255), nullable=False)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
@@ -46,4 +56,6 @@ class News(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     image = relationship("Image", foreign_keys=[image_id])
-    categories = relationship("Category", secondary=news_categories, back_populates="news_items")
+    categories = relationship(
+        "Category", secondary=news_categories, back_populates="news_items"
+    )

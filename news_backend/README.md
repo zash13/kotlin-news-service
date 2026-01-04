@@ -44,9 +44,34 @@
    ▶ curl -X GET "http://localhost:8000/api/categories/"
   ```
   - Result
-  ``` json
+      ``` json
     {"success":true,"message":"Found 8 categories","data":[{"category_id":1,"category_name":"politics"},{"category_id":2,"category_name":"technology"},{"category_id":3,"category_name":"sports"},{"category_id":4,"category_name":"entertainment"},{"category_id":5,"category_name":"business"},{"category_id":6,"category_name":"health"},{"category_id":7,"category_name":"science"},{"category_id":8,"category_name":"world"}],"timestamp":"2025-12-31T12:00:00.000000"}
   ```
+
+  4.1 Upload Image
+  ``` bash
+  curl -X POST "http://localhost:8000/api/images/upload" \
+    -F "file=@/path/to/your/image.jpg" \
+    -F "alt_text=News Image Description"
+  ```
+  - Result
+      ``` json
+      {"success":true,"message":"Image uploaded successfully","data":{"image_id":1,"location":"/api/images/uuid-filename.jpg","filename":"uuid-filename.jpg","alt_text":"News Image Description"},"timestamp":"2025-12-31T12:00:00.000000"}
+      ```
+
+  4.2 Get Image by Filename
+  ```bash
+  curl -X GET "http://localhost:8000/api/images/uuid-filename.jpg" --output downloaded_image.jpg
+  ```
+
+  4.3 Get Image Info by ID
+  ```bash
+  curl -X GET "http://localhost:8000/api/images/info/1"
+  ```
+  - Result
+      ``` json
+      {"success":true,"message":"Image info retrieved successfully","data":{"image_id":1,"location":"/api/images/uuid-filename.jpg","filename":"uuid-filename.jpg","alt_text":"News Image Description","created_at":"2025-12-31T12:00:00.000000"},"timestamp":"2025-12-31T12:00:00.000000"}
+      ```
 
   5. Get News Titles by Category ID
   ``` bash
