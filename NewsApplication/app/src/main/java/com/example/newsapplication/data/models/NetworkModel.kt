@@ -23,9 +23,13 @@ data class CategoriesResponse(
 data class CreateNewsRequest(
     val title: String,
     val description: String,
+    @SerialName("short_description")
+    val shortDescription: String? = null,
     @SerialName("category_ids")
     val categoryIds: List<Int>,
     val source: String,
+    @SerialName("image_id")
+    val imageId: Int? = null,
 )
 
 @Serializable
@@ -47,6 +51,10 @@ data class CreateNewsResponse(
 data class NewsTitle(
     val id: Int,
     val title: String,
+    @SerialName("short_description")
+    val shortDescription: String? = null,
+    @SerialName("image_id")
+    val imageId: Int? = null,
 )
 
 @Serializable
@@ -73,7 +81,10 @@ data class FullNews(
     val categories: List<CategoryInfo>,
     val source: String,
     val created_at: String,
-    val image_id: Int? = null,
+    @SerialName("image_id")
+    val imageId: Int? = null,
+    @SerialName("image_location")
+    val imageLocation: String? = null,
 )
 
 @Serializable
@@ -96,6 +107,10 @@ data class FullNewsResponse(
 data class MultiCategoryNewsItem(
     val id: Int,
     val title: String,
+    @SerialName("short_description")
+    val shortDescription: String? = null,
+    @SerialName("image_id")
+    val imageId: Int? = null,
     val categories: List<CategoryInfo>,
     val timestamp: String,
     val source: String,
@@ -129,4 +144,43 @@ data class RootResponse(
     val message: String,
     val version: String,
     val endpoints: EndpointInfo,
+)
+
+@Serializable
+data class SearchNewsRequest(
+    val q: String,
+    val limit: Int? = null,
+)
+
+@Serializable
+data class UploadImageRequest(
+    val file: String,
+    @SerialName("alt_text")
+    val altText: String? = null,
+)
+
+@Serializable
+data class UploadedImageData(
+    @SerialName("image_id")
+    val imageId: Int,
+    val location: String,
+    val filename: String,
+    @SerialName("alt_text")
+    val altText: String? = null,
+)
+
+@Serializable
+data class UploadImageResponse(
+    val success: Boolean,
+    val message: String,
+    val data: UploadedImageData,
+    val timestamp: String? = null,
+)
+
+@Serializable
+data class ImageInfoResponse(
+    val success: Boolean,
+    val message: String,
+    val data: UploadedImageData,
+    val timestamp: String? = null,
 )
