@@ -15,6 +15,7 @@ data class NewsDetailUiState(
     val news: FullNewsDto? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    val isLiked: Boolean = false,
 )
 
 @HiltViewModel
@@ -35,11 +36,14 @@ class NewsDetailViewModel
                     val news = repository.getNewsById(newsId)
 
                     if (news != null) {
-                        _uiState.value =
-                            NewsDetailUiState(
-                                news = news,
-                                isLoading = false,
-                            )
+                        repository.isNewsLiked(newsId).collect { isLiked ->
+                            _uiState.value =
+                                NewsDetailUiState(
+                                    news = news,
+                                    isLoading = false,
+                                    isLiked = isLiked,
+                                )
+                        }
                     } else {
                         _uiState.value =
                             NewsDetailUiState(
@@ -55,6 +59,25 @@ class NewsDetailViewModel
                             errorMessage = e.message ?: "Failed to load news",
                         )
                 }
+            }
+        }
+
+        fun toggleLike() {
+            val news = _uiState.value.news ?: return
+            
+            viewModelScope.launch {
+                if (_uiState.value.isLiked) {
+                    repository.unlikeNews(news.id)
+                } else {
+                    val categoryId = news.categories.firstOrNull()?.id ?: 0
+                    repository.likeNews(
+                        newsId = news.id,
+                        categoryId = categoryId,
+                        title = news.title,
+                        shortDescription = news.description.take(200),
+                    )
+                }
+                _uiState.value = _uiState.value.copy(isLiked = !_uiState.value.isLiked)
             }
         }
     }

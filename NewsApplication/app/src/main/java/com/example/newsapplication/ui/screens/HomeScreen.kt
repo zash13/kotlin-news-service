@@ -86,9 +86,10 @@ fun homeScreen(
             if (uiState.isLoading && uiState.newsTitles.isEmpty()) {
                 item {
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator()
@@ -97,9 +98,10 @@ fun homeScreen(
             } else if (uiState.errorMessage != null && uiState.errorLoading) {
                 item {
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Column(
@@ -136,9 +138,10 @@ fun homeScreen(
             } else {
                 item {
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -216,14 +219,15 @@ fun categoryRow(
     onCategorySelected: (Int) -> Unit,
 ) {
     LazyRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         items(
             items = categories,
-            key = { it.id }
+            key = { it.id },
         ) { category ->
             categoryItem(
                 category = category,
@@ -240,30 +244,44 @@ fun categoryItem(
     isSelected: Boolean,
     onSelected: () -> Unit,
 ) {
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
-    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+    val containerColor =
+        if (isSelected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        }
+
+    val contentColor =
+        if (isSelected) {
+            MaterialTheme.colorScheme.onPrimary
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        }
 
     Card(
-        modifier =
-            Modifier
-                .width(100.dp)
-                .clickable { onSelected() }
-                .height(80.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        modifier = Modifier
+            .height(36.dp)
+            .clickable { onSelected() },
+        shape = RoundedCornerShape(18.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isSelected) 2.dp else 0.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = containerColor
+        )
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxSize().padding(8.dp),
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxHeight(),
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = category.name,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.labelMedium,
                 color = contentColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

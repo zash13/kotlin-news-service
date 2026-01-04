@@ -3,15 +3,19 @@ package com.example.newsapplication.data.repository
 import com.example.newsapplication.data.dto.CategoryDto
 import com.example.newsapplication.data.dto.FullNewsDto
 import com.example.newsapplication.data.dto.NewsTitleDto
+import com.example.newsapplication.data.local.dao.LikedNewsDao
+import com.example.newsapplication.data.local.entity.LikedNewsEntity
 import com.example.newsapplication.data.mapper.toDto
 import com.example.newsapplication.data.mapper.toNewsTitleDto
 import com.example.newsapplication.data.models.CategoriesResponse
 import com.example.newsapplication.data.models.MultiCategoriesRequest
 import com.example.newsapplication.data.models.UserCategory
 import com.example.newsapplication.network.NewsApiService
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 
@@ -42,10 +46,25 @@ interface INewsRepository {
     suspend fun downloadImage(imageId: Int): okhttp3.ResponseBody?
 
     suspend fun getImageBitmap(imageId: Int?): android.graphics.Bitmap?
+
+    // local database
+    fun getLikedNews(): Flow<List<NewsTitleDto>>
+
+    fun isNewsLiked(newsId: Int): Flow<Boolean>
+
+    suspend fun likeNews(
+        newsId: Int,
+        categoryId: Int,
+        title: String,
+        shortDescription: String,
+    )
+
+    suspend fun unlikeNews(newsId: Int)
 }
 
 class NewsRepository(
     private val apiService: NewsApiService,
+    private val likedNewsDao: LikedNewsDao,
 ) : INewsRepository {
     private val _userCategories = MutableStateFlow<List<UserCategory>>(emptyList())
 
@@ -122,5 +141,38 @@ class NewsRepository(
             android.util.Log.e("NewsRepository", "Error getting image bitmap: $imageId", e)
             null
         }
+    }
+
+    override fun getLikedNews(): Flow<List<NewsTitleDto>> =
+        likedNewsDao.getLikedNews().map { entities ->
+            entities.map {
+                NewsTitleDto(
+                    id = it.newsId,
+                    title = it.title,
+                    shortDescription = it.shortDescription,
+                )
+            }
+        }
+
+    override fun isNewsLiked(newsId: Int): Flow<Boolean> = likedNewsDao.isNewsLiked(newsId)
+
+    override suspend fun likeNews(
+        newsId: Int,
+        categoryId: Int,
+        title: String,
+        shortDescription: String,
+    ) {
+        likedNewsDao.likeNews(
+            LikedNewsEntity(
+                newsId = newsId,
+                categoryId = categoryId,
+                title = title,
+                shortDescription = shortDescription,
+            ),
+        )
+    }
+
+    override suspend fun unlikeNews(newsId: Int) {
+        likedNewsDao.unlikeNewsById(newsId)
     }
 }

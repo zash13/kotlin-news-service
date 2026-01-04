@@ -71,4 +71,9 @@ dependencies {
     ksp("com.squareup:javapoet:1.13.0")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation(libs.coil.compose)
+    
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
 }

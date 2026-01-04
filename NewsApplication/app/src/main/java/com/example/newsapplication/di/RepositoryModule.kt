@@ -1,6 +1,7 @@
 
 package com.example.newsapplication.di
 
+import com.example.newsapplication.data.local.dao.LikedNewsDao
 import com.example.newsapplication.data.repository.INewsRepository
 import com.example.newsapplication.data.repository.NewsRepository
 import com.example.newsapplication.network.NewsApiService
@@ -15,5 +16,8 @@ import javax.inject.Singleton
 object RepositoryModule {
     @Provides
     @Singleton
-    fun provideNewsRepository(api: NewsApiService): INewsRepository = NewsRepository(api)
+    fun provideNewsRepository(
+        api: NewsApiService,
+        likedNewsDao: LikedNewsDao
+    ): INewsRepository = NewsRepository(api, likedNewsDao)
 }
