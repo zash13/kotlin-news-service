@@ -12,6 +12,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - LOG_LEVEL=INFO
+      - IMAGE_STORAGE_LOCATION=/app/data/images
     restart: unless-stopped
     networks:
       - news-network
